@@ -55,7 +55,7 @@
     <div class="card shadow-sm mb-4 border-warning rounded-4">
         <div class="card-header bg-warning text-dark rounded-top-4"><b>2. Smart Alerts (Low Stock)</b></div>
         <div class="card-body">
-            <ul class="list-group">
+            <ul class="list-group" id="alertsList">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     Parle-G (50g)
                     <span class="badge bg-danger rounded-pill">Only 12 left</span>
@@ -69,7 +69,7 @@
         <div class="card-header bg-success text-white rounded-top-4"><b>3. Agentic Action: Supplier Email Draft</b></div>
         <div class="card-body">
             <label>AI-Generated Purchase Order (Powered by IBM Granite):</label>
-            <textarea class="form-control mb-3" rows="4">Hello Ramesh Distributors,&#10;&#10;Our AI forecasting indicates we are running low on Parle-G (50g). Please process a purchase order for 100 units to be delivered this week.&#10;&#10;Thank you.</textarea>
+            <textarea class="form-control mb-3" rows="4" id="emailDraft">Hello Ramesh Distributors,&#10;&#10;Our AI forecasting indicates we are running low on Parle-G (50g). Please process a purchase order for 100 units to be delivered this week.&#10;&#10;Thank you.</textarea>
             <button class="btn btn-success">Approve & Send Email</button>
         </div>
     </div>
@@ -91,22 +91,69 @@ toggle.addEventListener('change', () => {
     }
 });
 
-// --- Analyze Button Loading Animation ---
-function analyzeData() {
-    const btn = document.getElementById('analyzeBtn');
+// --- Analyze Button: API Call ---
+async function analyzeData() {
+    const btn        = document.getElementById('analyzeBtn');
+    const fileInput  = document.getElementById('csvFile');
+    const alertsList = document.getElementById('alertsList');
+    const emailDraft = document.getElementById('emailDraft');
 
-    // Disable and show loading state
+    // 1. Guard: stop if no file is selected
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please upload a CSV file');
+        return;
+    }
+
+    // 2. Loading state
     btn.disabled = true;
     btn.innerHTML = `
         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         Granite AI is generating insights...
     `;
 
-    // Revert after 3 seconds
-    setTimeout(() => {
+    try {
+        // 3. Build FormData — key MUST be "file" for FastAPI to recognise it
+        // No Content-Type header set manually; browser sets multipart/form-data + boundary automatically
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const response = await fetch('http://10.124.126.153:8005/api/ai-advisor', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        // DEBUG: verify the shape of the API response in the browser console
+        console.log('✅ API response received:', data);
+
+        // 3a. Populate the email draft textarea
+        emailDraft.value = data.ai_advice;
+
+        // 3b. Clear the hardcoded alerts and rebuild from API response
+        alertsList.innerHTML = '';
+        data.items_to_order.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                ${item.Item_Name}
+                <span class="badge bg-danger rounded-pill">Only ${item.Stock} left</span>
+            `;
+            alertsList.appendChild(li);
+        });
+
+    } catch (err) {
+        // 4. Network / CORS / server crash — show user-facing message
+        console.error('analyzeData failed:', err);
+        alert('Network Error: Could not connect to the AI engine. Please check your connection.');
+    } finally {
+        // 5. Always reset button regardless of success or failure
         btn.disabled = false;
         btn.innerHTML = 'Analyze Data';
-    }, 3000);
+    }
 }
 </script>
 
