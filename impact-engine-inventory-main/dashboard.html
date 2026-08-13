@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Intelligence Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"]{
+    --bg:#14181F; --surface:#1D2430; --surface-2:#242C3A; --border:#313B4D;
+    --text:#EDEAE0; --text-muted:#9AA3B5;
+    --marigold:#E8A33D; --vermillion:#E0673A; --banyan:#4CA377; --brass:#D8B84A;
+    --shadow: 0 12px 30px rgba(0,0,0,0.35);
+  }
+  :root[data-theme="light"]{
+    --bg:#F3ECD8; --surface:#FFFDF6; --surface-2:#EFE6CC; --border:#D8CBA0;
+    --text:#221C12; --text-muted:#6B6350;
+    --marigold:#C97A1C; --vermillion:#B13E1D; --banyan:#26623F; --brass:#8A6D1F;
+    --shadow: 0 10px 24px rgba(80,60,20,0.12);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    transition: background .3s ease, color .3s ease;
+  }
+  .display{ font-family:'Fraunces', serif; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 40px; border-bottom:1px solid var(--border);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:30px; height:30px; border-radius:6px;
+    background:linear-gradient(135deg, var(--marigold), var(--vermillion));
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px;
+  }
+  .brand-name{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; letter-spacing:-0.2px; }
+  .theme-switch{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-muted); }
+  .switch{
+    width:40px; height:22px; border-radius:99px; background:var(--surface-2);
+    border:1px solid var(--border); position:relative; cursor:pointer;
+  }
+  .switch::after{
+    content:''; position:absolute; top:2px; left:2px; width:16px; height:16px;
+    border-radius:50%; background:var(--marigold); transition:left .2s ease;
+  }
+  :root[data-theme="light"] .switch::after{ left:20px; }
+
+  main{ max-width:960px; margin:0 auto; padding:48px 24px 100px; }
+
+  /* ---------- hero ---------- */
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--brass);
+  }
+  h1.hero-title{
+    font-family:'Fraunces', serif; font-weight:600; font-size:42px; line-height:1.1;
+    margin:14px 0 12px; max-width:600px;
+  }
+  .hero-sub{ color:var(--text-muted); max-width:520px; font-size:15.5px; line-height:1.6; }
+
+  /* ---------- stamp strip (signature element) ---------- */
+  .stamp-strip{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+    margin:36px 0 48px;
+  }
+  .stamp{
+    border:1.5px dashed var(--border); border-radius:10px; padding:16px 14px;
+    background:var(--surface); transform:rotate(-0.6deg);
+    position:relative;
+  }
+  .stamp:nth-child(2){ transform:rotate(0.5deg); }
+  .stamp:nth-child(3){ transform:rotate(-0.4deg); }
+  .stamp:nth-child(4){ transform:rotate(0.7deg); }
+  .stamp-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:1px;
+    text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;
+  }
+  .stamp-value{ font-family:'Fraunces', serif; font-size:26px; font-weight:600; }
+  .stamp-value.marigold{ color:var(--marigold); }
+  .stamp-value.vermillion{ color:var(--vermillion); }
+  .stamp-value.banyan{ color:var(--banyan); }
+
+  /* ---------- section shell ---------- */
+  .ledger-section{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:28px 28px 30px; margin-bottom:24px; box-shadow:var(--shadow);
+  }
+  .section-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    letter-spacing:1px; padding:4px 10px; border-radius:5px; margin-bottom:14px;
+    background:var(--surface-2); color:var(--text-muted); border:1px solid var(--border);
+  }
+  .tag-marigold{ color:var(--marigold); border-color:var(--marigold); }
+  .tag-brass{ color:var(--brass); border-color:var(--brass); }
+  .tag-banyan{ color:var(--banyan); border-color:var(--banyan); }
+  .tag-ink{ color:var(--text-muted); }
+  .ledger-section h2{
+    font-family:'Fraunces', serif; font-weight:600; font-size:22px; margin:0 0 6px;
+  }
+  .section-sub{ color:var(--text-muted); font-size:14px; margin:0 0 20px; line-height:1.5; }
+
+  /* ---------- upload ---------- */
+  .upload-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  input[type="file"]{
+    flex:1; min-width:220px; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:8px; padding:11px 12px; color:var(--text); font-family:'IBM Plex Sans';
+  }
+  button{
+    font-family:'IBM Plex Sans'; font-weight:600; font-size:14px; border:none;
+    border-radius:8px; padding:12px 20px; cursor:pointer; transition:opacity .15s ease, transform .1s ease;
+  }
+  button:active{ transform:scale(0.98); }
+  button:disabled{ opacity:.6; cursor:not-allowed; }
+  .btn-primary{ background:var(--marigold); color:#1A1300; }
+  .btn-primary:hover:not(:disabled){ opacity:.9; }
+  .btn-success{ background:var(--banyan); color:#06170D; }
+  .btn-success:hover:not(:disabled){ opacity:.9; }
+
+  /* ---------- alerts table ---------- */
+  .table-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:10px; }
+  table.ledger-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .ledger-table th{
+    text-align:left; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    letter-spacing:0.5px; text-transform:uppercase; color:var(--text-muted);
+    padding:10px 14px; background:var(--surface-2); border-bottom:1px solid var(--border);
+  }
+  .ledger-table td{ padding:11px 14px; border-bottom:1px solid var(--border); }
+  .ledger-table tr:last-child td{ border-bottom:none; }
+  .ledger-table tbody tr:hover{ background:var(--surface-2); }
+  .empty-row td{ text-align:center; color:var(--text-muted); padding:26px; font-style:italic; }
+  .urgency-pill{
+    display:inline-block; padding:3px 9px; border-radius:99px; font-family:'IBM Plex Mono', monospace;
+    font-size:11px; font-weight:600;
+  }
+  .urgency-critical{ background:rgba(224,103,58,0.18); color:var(--vermillion); }
+  .urgency-warning{ background:rgba(232,163,61,0.18); color:var(--marigold); }
+  .urgency-mild{ background:rgba(76,163,119,0.18); color:var(--banyan); }
+  .num{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- category bars ---------- */
+  .bar-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .bar-label{ width:130px; font-size:13px; flex-shrink:0; color:var(--text-muted); }
+  .bar-track{ flex:1; height:10px; background:var(--surface-2); border-radius:99px; overflow:hidden; }
+  .bar-fill{ height:100%; background:linear-gradient(90deg, var(--brass), var(--marigold)); border-radius:99px; }
+  .bar-count{ width:28px; text-align:right; font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--text-muted); }
+
+  /* ---------- agent action ---------- */
+  .field-label{
+    display:block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.5px;
+    text-transform:uppercase; color:var(--text-muted); margin:16px 0 6px;
+  }
+  select, textarea{
+    width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+    padding:11px 12px; color:var(--text); font-family:'IBM Plex Sans'; font-size:14px;
+  }
+  textarea{ resize:vertical; line-height:1.6; }
+  .action-row{ display:flex; align-items:center; gap:14px; margin-top:18px; }
+  .send-status{ font-size:13px; color:var(--text-muted); }
+  .send-status.ok{ color:var(--banyan); }
+  .send-status.err{ color:var(--vermillion); }
+
+  /* ---------- timeline ---------- */
+  .timeline{ list-style:none; margin:0; padding:0; }
+  .timeline-item{ display:flex; gap:14px; padding:10px 0; border-bottom:1px dashed var(--border); }
+  .timeline-item:last-child{ border-bottom:none; }
+  .dot{ width:9px; height:9px; border-radius:50%; background:var(--border); margin-top:5px; flex-shrink:0; }
+  .timeline-item.done .dot{ background:var(--banyan); }
+  .timeline-item strong{ font-size:14px; font-weight:600; }
+  .ts{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+
+  footer{ text-align:center; color:var(--text-muted); font-size:12.5px; padding:30px 0 10px; }
+
+  @media (max-width:720px){
+    .stamp-strip{ grid-template-columns:repeat(2,1fr); }
+    h1.hero-title{ font-size:32px; }
+    .topbar{ padding:16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">⚡</div>
+    <span class="brand-name">Inventory Intelligence Agent</span>
+  </div>
+  <div class="theme-switch">
+    <span id="themeLabel">Dark Mode</span>
+    <div class="switch" id="darkModeToggle"></div>
+  </div>
+</div>
+
+<main>
+  <span class="eyebrow">MSME Inventory Copilot · Powered by IBM Granite</span>
+  <h1 class="hero-title">Let the ledger watch your shelves.</h1>
+  <p class="hero-sub">Upload today's stock count. Granite reads it, flags what's running low, and drafts the reorder — you just approve and send.</p>
+
+  <div class="stamp-strip">
+    <div class="stamp">
+      <div class="stamp-label">SKUs Tracked</div>
+      <div class="stamp-value mono" id="statSkus">—</div>
+    </div>
+    <div class="stamp">
+      <div class="stamp-label">Low Stock</div>
+      <div class="stamp-value mono vermillion" id="statLow">—</div>
+    </div>
+    <div class="stamp">
+      <div class="stamp-label">Restock Value</div>
+      <div class="stamp-value mono marigold" id="statCost">—</div>
+    </div>
+    <div class="stamp">
+      <div class="stamp-label">Agent Status</div>
+      <div class="stamp-value mono banyan" id="statStatus" style="font-size:16px;">Idle</div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="ledger-section">
+    <span class="section-tag">Step 01 · Intake</span>
+    <h2>Sales & Stock Data</h2>
+    <p class="section-sub">CSV export from your billing register. Messy formatting (₹ symbols, blank suppliers, mixed casing) is handled automatically.</p>
+    <div class="upload-row">
+      <input type="file" id="csvFile" accept=".csv">
+      <button class="btn-primary" id="analyzeBtn" onclick="analyzeData()">Analyze Data</button>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="ledger-section">
+    <span class="section-tag tag-marigold">Step 02 · Alerts</span>
+    <h2>Smart Restock Alerts</h2>
+    <p class="section-sub" id="alertsSub">Run an analysis to see what's running low, sorted by urgency.</p>
+    <div class="table-wrap">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th>Item</th><th>Category</th><th>Supplier</th><th>Stock</th><th>Order Qty</th><th>Est. Cost</th><th>Urgency</th>
+          </tr>
+        </thead>
+        <tbody id="alertsBody">
+          <tr class="empty-row"><td colspan="7">No data yet — upload a file and analyze to populate alerts.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="ledger-section">
+    <span class="section-tag tag-brass">Step 03 · Insight</span>
+    <h2>Category Breakdown</h2>
+    <p class="section-sub">Share of total SKUs by category, across your full inventory.</p>
+    <div id="categoryBars"><p class="section-sub" style="margin:0;">Nothing to break down yet — run an analysis first.</p></div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="ledger-section">
+    <span class="section-tag tag-banyan">Step 04 · Action</span>
+    <h2>Agentic Action — Supplier Order</h2>
+    <p class="section-sub">AI-drafted purchase order. Review it, then approve to send.</p>
+
+    <label class="field-label" for="supplierSelect">Supplier</label>
+    <select id="supplierSelect"><option>Run an analysis to populate suppliers</option></select>
+
+    <label class="field-label" for="supplierEmail">Supplier email (optional — leave blank to demo without sending live)</label>
+    <input type="email" id="supplierEmail" placeholder="supplier@example.com" style="width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:11px 12px; color:var(--text); font-family:'IBM Plex Sans'; font-size:14px;">
+
+    <label class="field-label" for="emailDraft">Draft</label>
+    <textarea id="emailDraft" rows="8">Run an analysis first — the AI-generated draft will appear here.</textarea>
+
+    <div class="action-row">
+      <button class="btn-success" id="sendBtn" onclick="sendEmail()">Approve & Send Email</button>
+      <span class="send-status" id="sendStatus"></span>
+    </div>
+  </section>
+
+  <!-- AGENT LOG -->
+  <section class="ledger-section">
+    <span class="section-tag tag-ink">Agent Log</span>
+    <h2>Activity Timeline</h2>
+    <ul class="timeline" id="timelineList">
+      <li class="timeline-item"><span class="dot"></span><div><strong>Waiting for data</strong><div class="ts">Upload a file to begin</div></div></li>
+    </ul>
+  </section>
+
+  <footer>Built for the IBM-sponsored hackathon · AI for Business Transformation</footer>
+</main>
+
+<script>
+// ---------------- Theme toggle ----------------
+const root = document.documentElement;
+const toggle = document.getElementById('darkModeToggle');
+const themeLabel = document.getElementById('themeLabel');
+toggle.addEventListener('click', () => {
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+});
+
+// ---------------- Helpers ----------------
+const fmtRupees = n => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:0});
+
+function addTimelineStep(label, ts, done=true) {
+  const list = document.getElementById('timelineList');
+  if (list.children.length === 1 && list.children[0].innerText.includes('Waiting for data')) {
+    list.innerHTML = '';
+  }
+  const li = document.createElement('li');
+  li.className = 'timeline-item' + (done ? ' done' : '');
+  li.innerHTML = `<span class="dot"></span><div><strong>${label}</strong><div class="ts">${ts}</div></div>`;
+  list.appendChild(li);
+}
+
+function urgencyPill(u) {
+  if (u >= 0.66) return `<span class="urgency-pill urgency-critical">Critical</span>`;
+  if (u >= 0.33) return `<span class="urgency-pill urgency-warning">Warning</span>`;
+  return `<span class="urgency-pill urgency-mild">Mild</span>`;
+}
+
+// ---------------- Analyze ----------------
+async function analyzeData() {
+  const btn = document.getElementById('analyzeBtn');
+  const fileInput = document.getElementById('csvFile');
+  const alertsBody = document.getElementById('alertsBody');
+  const alertsSub = document.getElementById('alertsSub');
+  const emailDraft = document.getElementById('emailDraft');
+  const supplierSelect = document.getElementById('supplierSelect');
+  const categoryBars = document.getElementById('categoryBars');
+
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert('Please upload a CSV file');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Granite AI is generating insights...';
+  document.getElementById('statStatus').textContent = 'Thinking…';
+  addTimelineStep('Data ingested — ' + fileInput.files[0].name, new Date().toLocaleTimeString());
+
+  try {
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    const response = await fetch('http://localhost:5000/api/ai-advisor', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error(`Server error: ${response.status} ${response.statusText}`);
+    const data = await response.json();
+    console.log('✅ API response received:', data);
+
+    addTimelineStep('Anomalies detected — ' + data.items_to_order.length + ' low-stock items', new Date().toLocaleTimeString());
+
+    // Stat strip
+    document.getElementById('statSkus').textContent = data.total_skus ?? '—';
+    document.getElementById('statLow').textContent = data.items_to_order.length;
+    document.getElementById('statCost').textContent = fmtRupees(data.total_cost_rupees);
+    document.getElementById('statStatus').textContent = data.status;
+
+    // Alerts table
+    alertsBody.innerHTML = '';
+    if (data.items_to_order.length === 0) {
+      alertsBody.innerHTML = '<tr class="empty-row"><td colspan="7">Inventory is fully stocked — nothing to reorder.</td></tr>';
+      alertsSub.textContent = 'All clear. No items below their reorder threshold.';
+    } else {
+      alertsSub.textContent = data.items_to_order.length + ' item(s) below their reorder threshold, sorted by urgency.';
+      data.items_to_order.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.Item_Name}</td>
+          <td>${item.Category ?? '—'}</td>
+          <td>${item.Supplier}</td>
+          <td class="num">${item.Stock}</td>
+          <td class="num">${item['Units to Order']}</td>
+          <td class="num">${fmtRupees(item['Estimated Cost'])}</td>
+          <td>${urgencyPill(item.Urgency ?? 0)}</td>
+        `;
+        alertsBody.appendChild(tr);
+      });
+    }
+
+    // Category breakdown bars
+    if (data.categories) {
+      const entries = Object.entries(data.categories).sort((a,b) => b[1]-a[1]);
+      const max = Math.max(...entries.map(e => e[1]));
+      categoryBars.innerHTML = entries.map(([cat, count]) => `
+        <div class="bar-row">
+          <div class="bar-label">${cat}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(count/max*100).toFixed(0)}%"></div></div>
+          <div class="bar-count">${count}</div>
+        </div>
+      `).join('');
+    }
+
+    // Supplier dropdown
+    const suppliers = [...new Set(data.items_to_order.map(i => i.Supplier))];
+    supplierSelect.innerHTML = suppliers.length
+      ? suppliers.map(s => `<option value="${s}">${s}</option>`).join('')
+      : '<option>No suppliers to order from</option>';
+
+    // Email draft
+    emailDraft.value = data.ai_advice;
+    addTimelineStep('Granite analysis complete — draft ready for review', new Date().toLocaleTimeString());
+
+  } catch (err) {
+    console.error('analyzeData failed:', err);
+    addTimelineStep('Analysis failed — ' + err.message, new Date().toLocaleTimeString(), false);
+    alert('Could not reach the AI engine. Check that app.py is running on port 5000, and that the terminal shows "LIVE on port 5000".');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analyze Data';
+  }
+}
+
+// ---------------- Send email ----------------
+async function sendEmail() {
+  const btn = document.getElementById('sendBtn');
+  const status = document.getElementById('sendStatus');
+  const supplier = document.getElementById('supplierSelect').value;
+  const to_email = document.getElementById('supplierEmail').value.trim();
+  const body = document.getElementById('emailDraft').value;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  status.textContent = '';
+  status.className = 'send-status';
+
+  try {
+    const response = await fetch('http://localhost:5000/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supplier, to_email, body })
+    });
+    const data = await response.json();
+
+    if (data.status === 'sent') {
+      status.textContent = data.mode === 'live'
+        ? `✅ Sent to ${data.to}`
+        : `✅ Approved (demo mode — logged to server console, no SMTP configured)`;
+      status.classList.add('ok');
+      addTimelineStep('Purchase order approved & sent to ' + supplier, new Date().toLocaleTimeString());
+    } else {
+      status.textContent = '❌ ' + (data.message || 'Send failed');
+      status.classList.add('err');
+    }
+  } catch (err) {
+    status.textContent = '❌ Could not reach backend';
+    status.classList.add('err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Approve & Send Email';
+  }
+}
+</script>
+
+</body>
+</html>

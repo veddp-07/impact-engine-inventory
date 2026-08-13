@@ -1,0 +1,32 @@
+Item Name,Category,Current Stock,Reorder Threshold,Price,Supplier
+Toor Dal,pulses & grains,8,25,₹120,Rajdhani Foods Pvt Ltd
+basmati rice,Pulses & Grains,60,20,85,India Gate Suppliers
+Atta (Wheat Flour),Pulses & Grains,  45  ,15,55.00,Aashirvaad Distributors
+Chana Dal,Pulses & Grains,30,10,95,Rajdhani Foods Pvt Ltd
+Moong Dal,Pulses & Grains,18,10,110 Rs,  Rajdhani Foods Pvt Ltd  
+Parle-G Biscuits,Snacks & Biscuits,6,30,₹10,Parle Products Ltd
+Britannia Marie Gold,Snacks & Biscuits,40,15,35,Britannia Industries
+Lay's Chips (Classic),Snacks & Biscuits,25 units,20,20,PepsiCo India
+Kurkure Masala Munch,Snacks & Biscuits,22,20,20,PepsiCo India
+Amul Butter (100g),DAIRY,5,20,₹55,Amul (GCMMF)
+Amul Milk (500ml),Dairy,35,25,28,Amul (GCMMF)
+Amul Paneer (200g),Dairy,20,10,90,Amul (GCMMF)
+Amul Paneer (200g),Dairy,20,10,90,Amul (GCMMF)
+Mother Dairy Curd (400g),Dairy,18,12,45,Mother Dairy Pvt Ltd
+Surf Excel (1kg),Household,28,10,₹195,Hindustan Unilever Ltd
+Vim Dishwash Bar,Household,15,10,30,
+Dettol Soap (75g),Personal Care,40,15,42,Reckitt Benckiser
+Colgate Toothpaste (150g),Personal Care,22,10,85,Colgate-Palmolive India
+Sunsilk Shampoo (180ml),personal care,12,8,130,Hindustan Unilever Ltd
+Tata Salt (1kg),Spices & Condiments,50,20,22,Tata Consumer Products
+MDH Chana Masala (100g),Spices & Condiments,N/A,12,55,MDH Spices Pvt Ltd
+Everest Garam Masala (100g),Spices & Condiments,25,10,68,Everest Food Products
+Red Chilli Powder (500g),Spices & Condiments,9,15,₹75,Local Spice Wholesaler
+Turmeric Powder (200g),Spices & Condiments,20,10,48,Local Spice Wholesaler
+Fortune Sunflower Oil (1L),Oils & Ghee,35,15,140,Adani Wilmar Ltd
+Saffola Gold Oil (1L),Oils & Ghee,18,10,175,Marico Ltd
+Patanjali Cow Ghee (500g),Oils & Ghee,10,8,₹310,Patanjali Ayurved Ltd
+Maggi Noodles (70g),Instant Foods,55,30,14,Nestle India Ltd
+,Instant Foods,28,15,38,Hindustan Unilever Ltd
+Tropicana Orange Juice (1L),Beverages,14,10,₹120,PepsiCo India
+Bru Instant Coffee (100g),Beverages,7,20,220,Hindustan Unilever Ltd
